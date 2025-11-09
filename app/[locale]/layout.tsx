@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "../globals.css";
 
 import { getMessages } from "next-intl/server";
 
 import { NextIntlClientProvider } from "next-intl";
 import ThemeProvider from "@/components/theme/theme-provider";
-import ReactQueryProvider from "./ReactQueryProvider";
-import AuthProvider from "./AuthProvider";
 import ScreenQueryInfo from "@/components/screen-query-info";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,19 +39,26 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <NextIntlClientProvider messages={messages}>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <ReactQueryProvider>
-                {children}
-                <ScreenQueryInfo
-                  size="lg"
-                  position={{ x: "left", y: "bottom" }}
-                />
-              </ReactQueryProvider>
-            </ThemeProvider>
-          </NextIntlClientProvider>
-        </AuthProvider>
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-6SN3VK4KY0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-6SN3VK4KY0');
+          `}
+        </Script>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            <ScrollToTop />
+            <ScreenQueryInfo size="lg" position={{ x: "left", y: "bottom" }} />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

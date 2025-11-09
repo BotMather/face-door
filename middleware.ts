@@ -7,20 +7,6 @@ const publicRoutes = /^(\/[a-z]{2})?(\/auth\/login)?$/; // Public routelar
 
 const intlMiddleware = createIntlMiddleware(localeConfig);
 
-const authMiddleware = withAuth(
-  function onSuccess(req) {
-    return intlMiddleware(req);
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => token != null, // Faqat login qilganlar kirishi mumkin
-    },
-    pages: {
-      signIn: `/${localeConfig.defaultLocale}/auth/login`, // Foydalanuvchi login qilmagan bo‘lsa, shu sahifaga yo‘naltiriladi
-    },
-  },
-);
-
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -32,13 +18,7 @@ export default function middleware(req: NextRequest) {
     return intlMiddleware(req);
   }
 
-  // 2️⃣ Agar route public bo'lsa ("/auth/login" yoki "/en"), faqat intlMiddleware ishlatish
-  if (publicRoutes.test(pathname)) {
-    return intlMiddleware(req);
-  }
-
-  // 3️⃣ Agar route private bo'lsa, autentifikatsiyani tekshirish
-  return (authMiddleware as any)(req);
+  return intlMiddleware(req);
 }
 
 export const config = {
