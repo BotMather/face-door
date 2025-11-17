@@ -1,7 +1,18 @@
+"use client";
+
 import type React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { OtpAuthDialog } from "@/app/[locale]/template/[id]/sections/otp-dialog";
 
 export function Navigation() {
+  const session = useSession();
+
+  useEffect(() => {
+    console.log(session);
+  }, [session]);
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -32,12 +43,15 @@ export function Navigation() {
             </Link>
           </div>
 
-          <Link
-            href="/template"
-            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-          >
-            Get Started
-          </Link>
+          {session.status === "unauthenticated" ? (
+            <OtpAuthDialog>
+              <button className="rounded-full bg-foreground px-6 py-2 font-semibold text-background transition-opacity hover:opacity-90">
+                Login
+              </button>
+            </OtpAuthDialog>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
     </nav>

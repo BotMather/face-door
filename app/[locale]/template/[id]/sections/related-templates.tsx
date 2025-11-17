@@ -2,7 +2,6 @@
 
 import { PhoneInput } from "@/components/phone-input";
 import { TemplateCard } from "@/components/TemplateCard";
-import { TEMPLATES } from "@/lib/templates";
 
 export function RelatedTemplates() {
   return (
@@ -20,9 +19,10 @@ export function RelatedTemplates() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {TEMPLATES.map((template) => (
+        {/* TODO */}
+        {/* {TEMPLATES.map((template) => (
           <TemplateCard key={template.id} {...template}></TemplateCard>
-        ))}
+        ))} */}
       </div>
 
       <div className="items-centermt-12 flex flex-col justify-center rounded-lg bg-gradient-to-br from-accent/20 via-primary/10 to-accent/10 p-12 text-center">

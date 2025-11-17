@@ -1,8 +1,21 @@
+import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
+const nextConfig: NextConfig = {
+  basePath: "/website",
+  assetPrefix: "/website",
+  images: {
+    path: "/website/_next/image",
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "api.botmother.uz",
+        port: "",
+        pathname: "/resources/media/template/**",
+      },
+    ],
+  },
+};
+
 const withNextIntl = createNextIntlPlugin();
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {};
-
 export default withNextIntl(nextConfig);

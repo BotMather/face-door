@@ -1,9 +1,6 @@
-import { withAuth } from "next-auth/middleware";
 import createIntlMiddleware from "next-intl/middleware";
 import { NextRequest } from "next/server";
 import { localeConfig } from "./i18n/routing";
-
-const publicRoutes = /^(\/[a-z]{2})?(\/auth\/login)?$/; // Public routelar
 
 const intlMiddleware = createIntlMiddleware(localeConfig);
 

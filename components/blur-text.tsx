@@ -1,61 +1,47 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React from "react";
 
 interface BlurTextProps {
-  children: React.ReactNode;
   className?: string;
   delay?: number;
   blurAmount?: number;
+  children: React.ReactNode;
 }
 
 export function BlurText({
-  children,
   className = "",
   delay = 0,
-  blurAmount = 10,
+  blurAmount = 8,
+  children,
 }: BlurTextProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          setTimeout(() => setIsLoaded(true), delay);
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, [delay]);
-
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        filter: isLoaded
-          ? "blur(0px)"
-          : isVisible
-            ? `blur(${blurAmount}px)`
-            : `blur(${blurAmount}px)`,
-        opacity: isLoaded ? 1 : isVisible ? 0.5 : 0,
-        transition: "filter 0.8s ease-out, opacity 0.8s ease-out",
-      }}
+    <span
+      className={`inline-block transition-all duration-700 ${className}`}
+      style={
+        {
+          animation: `blurInUp 0.8s ease-out forwards`,
+          animationDelay: `${delay}ms`,
+          filter: `blur(${blurAmount}px)`,
+          opacity: 0,
+        } as React.CSSProperties
+      }
     >
+      <style>{`
+        @keyframes blurInUp {
+          0% {
+            opacity: 0;
+            filter: blur(${blurAmount}px);
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+          }
+        }
+      `}</style>
       {children}
-    </div>
+    </span>
   );
 }

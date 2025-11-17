@@ -7,10 +7,12 @@ import { getMessages } from "next-intl/server";
 
 import { NextIntlClientProvider } from "next-intl";
 import ThemeProvider from "@/components/theme/theme-provider";
-import ScreenQueryInfo from "@/components/screen-query-info";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
+import AuthProvider from "./AuthProvider";
+import ReactQueryProvider from "./ReactQueryProvider";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,15 +31,20 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: any;
 }>) {
   // Providing all messages to the client
   // side is the easiest way to get started
-  const messages = await getMessages();
+
+  const { locale } = await params;
+
+  const messages = await getMessages({ locale: locale });
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -55,13 +62,21 @@ export default async function RootLayout({
           `}
         </Script>
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Navigation />
-            {children}
-            <Footer />
-            <ScrollToTop />
-            <ScreenQueryInfo size="lg" position={{ x: "left", y: "bottom" }} />
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <AuthProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+              >
+                <Navigation />
+                {children}
+                <Toaster />
+                <Footer />
+                <ScrollToTop />
+              </ThemeProvider>
+            </AuthProvider>
+          </ReactQueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

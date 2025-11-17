@@ -1,19 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter } from "lucide-react";
-import { TemplateCard } from "@/components/TemplateCard";
-import { TEMPLATES, TEMPLATE_CATEGORIES, type Template } from "@/lib/templates";
+import { Search, Filter, X } from "lucide-react";
+import { TemplateCard, TemplateCardSkeleton } from "@/components/TemplateCard";
 import { BlurText } from "@/components/blur-text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useReactQueryAction } from "@/services/use-react-query-action";
+import { APIListResponse } from "@/types/http";
+import { Category, Feature, TemplateListType } from "@/types/template";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TemplatesPage() {
-  const [selectedCategory, setSelectedCategory] =
-    useState<(typeof TEMPLATE_CATEGORIES)[number]>("Hammasi");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredTemplates, setFilteredTemplates] =
-    useState<Template[]>(TEMPLATES);
+  const [selectedCategory, setSelectedCategory] = useState<Category[] | []>([]);
+  const [selectedFeatures, setSelectedFeatures] = useState<Feature[] | []>([]);
+
+  const { data: templates } = useReactQueryAction<
+    APIListResponse<TemplateListType[]>
+  >({
+    url: "/api/template",
+    debounceTime: 400,
+    query: {
+      search: searchQuery,
+      features: selectedFeatures.map((item) => item.id),
+      categories: selectedCategory.map((item) => item.id),
+    },
+  });
+
+  const { data: category } = useReactQueryAction<APIListResponse<Category[]>>({
+    url: "/api/category",
+  });
+
+  const { data: feature } = useReactQueryAction<APIListResponse<Category[]>>({
+    url: "/api/feature",
+  });
+
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -47,34 +69,7 @@ export default function TemplatesPage() {
         observer.unobserve(el);
       });
     };
-  }, [filteredTemplates]);
-
-  useEffect(() => {
-    // Filter templates based on category and search query
-    let filtered = TEMPLATES;
-
-    // Filter by category
-    if (selectedCategory !== "Hammasi") {
-      filtered = filtered.filter(
-        (template) => template.category === selectedCategory,
-      );
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (template) =>
-          template.title.toLowerCase().includes(query) ||
-          template.description.toLowerCase().includes(query) ||
-          template.features.some((feature) =>
-            feature.toLowerCase().includes(query),
-          ),
-      );
-    }
-
-    setFilteredTemplates(filtered);
-  }, [selectedCategory, searchQuery]);
+  }, [templates]);
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -101,8 +96,8 @@ export default function TemplatesPage() {
               delay={300}
               blurAmount={6}
             >
-              {TEMPLATES.length}+ tayyorlangan shablonlar. Biznesingiz uchun
-              to'g'ri botni toping va 5 daqiqada ishga tushiring.
+              20K+ tayyorlangan shablonlar. Biznesingiz uchun to'g'ri botni
+              toping va 5 daqiqada ishga tushiring.
             </BlurText>
           </div>
 
@@ -137,87 +132,183 @@ export default function TemplatesPage() {
               <Filter className="h-4 w-4" />
               <span>Kategoriya:</span>
             </div>
-            {TEMPLATE_CATEGORIES.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className={`rounded-full transition-all ${
-                  selectedCategory === category
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "hover:border-primary/50"
-                }`}
-              >
-                {category}
-              </Button>
-            ))}
+
+            <Button
+              variant={!selectedCategory ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory([])}
+              className={`rounded-full transition-all ${
+                !selectedCategory
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                  : "hover:border-primary/50"
+              }`}
+            >
+              <X />
+              Tozalash
+            </Button>
+
+            {category ? (
+              category.data.results.map(({ id, name }) => {
+                const isSelected = selectedCategory.some(
+                  (cat) => cat.id === id,
+                );
+                return (
+                  <Button
+                    key={`category-${id}`}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedCategory(
+                          selectedCategory.filter((cat) => cat.id !== id),
+                        );
+                      } else {
+                        setSelectedCategory([
+                          ...selectedCategory,
+                          { id, name },
+                        ]);
+                      }
+                    }}
+                    className={`rounded-full transition-all ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "hover:border-primary/50"
+                    }`}
+                  >
+                    {name}
+                  </Button>
+                );
+              })
+            ) : (
+              <>
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+              </>
+            )}
           </div>
 
-          {/* Results Count */}
-          <div className="mb-6 text-sm text-muted-foreground">
-            {filteredTemplates.length > 0 ? (
-              <span>
-                {filteredTemplates.length} ta shablon topildi
-                {selectedCategory !== "Hammasi" && (
-                  <span className="ml-1">
-                    ({selectedCategory} kategoriyasida)
-                  </span>
-                )}
-              </span>
+          {/* Feature */}
+          <div className="mb-8 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              <span>Feature:</span>
+            </div>
+
+            <Button
+              variant={!selectedFeatures ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory([])}
+              className={`rounded-full transition-all ${
+                !selectedFeatures
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                  : "hover:border-primary/50"
+              }`}
+            >
+              <X />
+              Tozalash
+            </Button>
+
+            {feature ? (
+              feature.data.results.map(({ id, name }) => {
+                const isSelected = selectedFeatures.some(
+                  (cat) => cat.id === id,
+                );
+                return (
+                  <Button
+                    key={`category-${id}`}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedFeatures(
+                          selectedFeatures.filter((cat) => cat.id !== id),
+                        );
+                      } else {
+                        setSelectedFeatures([
+                          ...selectedFeatures,
+                          { id, name },
+                        ]);
+                      }
+                    }}
+                    className={`rounded-full transition-all ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "hover:border-primary/50"
+                    }`}
+                  >
+                    {name}
+                  </Button>
+                );
+              })
             ) : (
-              <span>Hech qanday shablon topilmadi</span>
+              <>
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+                <CategoryButtonSkeleton />
+              </>
             )}
           </div>
 
           {/* Templates Grid */}
-          {filteredTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredTemplates.map((template) => {
-                const Icon = template.icon;
-                return (
-                  <div
-                    key={template.id}
-                    className="scroll-animate"
-                    style={{
-                      animation: `slideInUp 0.5s ease-out forwards`,
-                    }}
-                  >
-                    <TemplateCard
-                      previuv={template.previuv}
-                      id={template.id}
-                      title={template.title}
-                      description={template.description}
-                      price={template.price}
-                      features={template.features}
-                      category={template.category}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+          {templates ? (
+            templates.data.results.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {templates.data.results.map((template) => {
+                  return (
+                    <div
+                      key={template.id}
+                      className="scroll-animate"
+                      style={{
+                        animation: `slideInUp 0.5s ease-out forwards`,
+                      }}
+                    >
+                      <TemplateCard {...template} />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-border/50 bg-muted/20 p-12 text-center">
+                <Search className="mb-4 h-12 w-12 text-muted-foreground/50" />
+                <h3 className="mb-2 text-xl font-semibold">
+                  Shablon topilmadi
+                </h3>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  Qidiruv so'rovingizga mos shablon topilmadi. Boshqa kategoriya
+                  yoki qidiruv so'zini sinab ko'ring.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-6"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory([]);
+                    setSelectedFeatures([]);
+                  }}
+                >
+                  Filtrlarni tozalash
+                </Button>
+              </div>
+            )
           ) : (
-            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-border/50 bg-muted/20 p-12 text-center">
-              <Search className="mb-4 h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mb-2 text-xl font-semibold">Shablon topilmadi</h3>
-              <p className="max-w-md text-sm text-muted-foreground">
-                Qidiruv so'rovingizga mos shablon topilmadi. Boshqa kategoriya
-                yoki qidiruv so'zini sinab ko'ring.
-              </p>
-              <Button
-                variant="outline"
-                className="mt-6"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("Hammasi");
-                }}
-              >
-                Filtrlarni tozalash
-              </Button>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <TemplateCardSkeleton />
+              <TemplateCardSkeleton />
+              <TemplateCardSkeleton />
+              <TemplateCardSkeleton />
             </div>
           )}
         </div>
       </section>
     </main>
   );
+}
+
+export function CategoryButtonSkeleton() {
+  return <Skeleton className="h-8 w-24 rounded-full" />;
 }

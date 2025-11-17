@@ -663,7 +663,8 @@ export default function Home() {
 
             <div className="relative flex flex-col justify-center gap-4 pt-4 sm:flex-row">
               <Link
-                href="/template"
+                href="/template
+                "
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
               >
                 Shablonlarni ko'rish
