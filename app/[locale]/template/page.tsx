@@ -310,6 +310,6 @@ export default function TemplatesPage() {
   );
 }
 
-export function CategoryButtonSkeleton() {
+function CategoryButtonSkeleton() {
   return <Skeleton className="h-8 w-24 rounded-full" />;
 }

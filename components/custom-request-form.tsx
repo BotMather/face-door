@@ -143,7 +143,6 @@ export function CustomRequestForm() {
               id="phone"
               value={phoneNumber}
               onChange={setPhoneNumber}
-              error={error && error.includes("telefon") ? error : undefined}
               disabled={isSubmitting}
               required
             />
