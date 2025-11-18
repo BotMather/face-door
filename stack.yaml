@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   ssales:
-    image: registry.jscorp.uz/botmother-sales:latest
+    image: registry.jscorp.uz/botmother-sales:6
     ports:
       - mode: ingress
         target: 3000
